@@ -41,7 +41,7 @@ jobs:
 
     - name: Prepare binary
       run: |
-        cp ${{github.workspace}}/build/bin/ chat
+        cp ${{github.workspace}}/build/bin/chat chat
         if [ "${{ matrix.os }}" == "windows-latest" ]; then
           mv chat chat-windows-latest.exe
         else
