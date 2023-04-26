@@ -87,4 +87,4 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          ${{github.workspace}}/artifacts/*
+          artifacts/**/*
