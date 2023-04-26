@@ -1,6 +1,7 @@
+#include "./header.h"
+
 #include "../llm/llmodel.h"
 #include "../llm/llamamodel.h"
-#include "./header.h"
 #include "./utils.h"
 #include "./parse_json.h"
 
@@ -173,7 +174,7 @@ int main(int argc, char* argv[]) {
     //handle stderr for now
     #ifdef _WIN32
         int stderr_copy = _dup(_fileno(stderr));
-        _freopen("NUL", "w", stderr);
+        _freopen_s("NUL", "w", stderr);
     #else
         int stderr_copy = dup(fileno(stderr));
         std::freopen("/dev/null", "w", stderr);
