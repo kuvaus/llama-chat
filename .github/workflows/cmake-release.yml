@@ -49,10 +49,13 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}}
     
     - name: Upload binaries
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: binaries-${{ matrix.os }}
         path: ${{github.workspace}}/build/bin/chat-${{ matrix.os }}*
+    
+    - name: Wait for artifacts to be available
+      run: sleep 60
 
   release:
     needs: build
@@ -64,22 +67,27 @@ jobs:
 
       - name: Create directories for binaries
         run: mkdir -p build/binaries
+        
+      - name: Wait for artifacts to be available
+        run: sleep 60
 
       - name: Download built binaries
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
         run: |
           for os in ubuntu-latest macos-latest windows-latest; do
             echo "Downloading binaries for $os"
-            mkdir -p build/binaries/$os
-            echo "::set-output name=matrix_os::$os"
-            uses: actions/download-artifact@v2
-            with:
-              name: binaries-$os
-              path: build/binaries/$os
+            gh run download --repo ${{ github.repository }} --name "binaries-$os"
+            gh run download --name binaries-$os --repo kuvaus/llama-chat --dir build/binaries/
           done
+          ls -R build/binaries
 
       - name: List contents of build/binaries
         run: ls -R build/binaries
-
+        
+      - name: Wait for artifacts to be available
+        run: sleep 60
+        
       - name: Upload the artifacts
         uses: softprops/action-gh-release@v1
         env:
@@ -90,4 +98,5 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            build/binaries/*
+            ${{github.workspace}}/build/binaries/*
+
