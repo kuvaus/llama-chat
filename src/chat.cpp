@@ -173,8 +173,9 @@ int main(int argc, char* argv[]) {
 
     //handle stderr for now
     #ifdef _WIN32
-        int stderr_copy = _dup(_fileno(stderr));
-        _freopen_s("NUL", "w", stderr);
+	    int nullfd = _open("NUL", _O_WRONLY);
+	    _dup2(nullfd, _fileno(stderr));
+	    _close(nullfd);
     #else
         int stderr_copy = dup(fileno(stderr));
         std::freopen("/dev/null", "w", stderr);
@@ -185,8 +186,7 @@ int main(int argc, char* argv[]) {
 
     //bring back stderr for now
     #ifdef _WIN32
-        _dup2(stderr_copy, _fileno(stderr));
-        _close(stderr_copy);
+    	// currently not handed
     #else
         dup2(stderr_copy, fileno(stderr));
         close(stderr_copy);

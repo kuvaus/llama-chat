@@ -6,16 +6,16 @@
 
 
 
+#include <cstdio>
+
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
 #include <unistd.h>
 #elif defined (_WIN32)
-#define NOMINMAX
-#define _CRT_SECURE_NO_WARNINGS
 #include <io.h>
+#define NOMINMAX
 #include <windows.h>
 #endif
 
-#include <cstdio>
 #include <cassert>
 #include <cmath>
 #include <string>
