@@ -77,32 +77,14 @@ jobs:
       with:
         path: artifacts
 
-    - name: Upload artifacts to release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/chat-ubuntu-latest
-        asset_name: chat-ubuntu-latest
-        asset_content_type: application/octet-stream
-
-    - name: Upload artifacts to release (macOS)
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/chat-macos-latest
-        asset_name: chat-macos-latest
-        asset_content_type: application/octet-stream
-
-    - name: Upload artifacts to release (Windows)
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/chat-windows-latest.exe
-        asset_name: chat-windows-latest.exe
-        asset_content_type: application/octet-stream
+      - name: Upload the artifacts
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{github.workspace}}/artifacts/*
