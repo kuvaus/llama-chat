@@ -41,12 +41,14 @@ jobs:
 
     - name: Prepare binary
       run: |
-        cp ${{github.workspace}}/build/bin/chat chat
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          mv chat chat-windows-latest.exe
-        else
+        if ( "${{ matrix.os }}" == "windows-latest" ) {
+          cp ${{github.workspace}}\build\bin\Release\chat.exe chat.exe
+          mv chat.exe chat-windows-latest.exe
+        } else {
+          cp ${{github.workspace}}/build/bin/chat chat
           mv chat chat-${{ matrix.os }}
-        fi
+        }
+      shell: pwsh
 
     - name: Upload binary
       uses: actions/upload-artifact@v2
