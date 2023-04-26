@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*'
-      
+
 env:
   BUILD_TYPE: Release
 
@@ -15,7 +15,7 @@ permissions:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -23,80 +23,84 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-          
+
     steps:
     - uses: actions/checkout@v3
       with:
           submodules: recursive
-        
+
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-    - name: Rename binary
-      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-      run: mv ${{github.workspace}}/build/bin/chat ${{github.workspace}}/build/bin/chat-${{ matrix.os }}
-      
-    - name: Rename and move binary for Windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        Move-Item -Path ${{github.workspace}}/build/bin/Release/chat.exe -Destination ${{github.workspace}}/build/bin/chat-${{ matrix.os }}.exe
-
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}}
-    
-    - name: Upload binaries
-      uses: actions/upload-artifact@v3
+
+    - name: Prepare binary
+      run: |
+        cp ${{github.workspace}}/build/bin/ chat
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          mv chat chat-windows-latest.exe
+        else
+          mv chat chat-${{ matrix.os }}
+        fi
+
+    - name: Upload binary
+      uses: actions/upload-artifact@v2
       with:
-        name: binaries-${{ matrix.os }}
-        path: ${{github.workspace}}/build/bin/chat-${{ matrix.os }}*
-    
-    - name: Wait for artifacts to be available
-      run: sleep 60
+        name: chat-${{ matrix.os }}
+        path: chat-${{ matrix.os }}*
 
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v3
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
 
-      - name: Create directories for binaries
-        run: mkdir -p build/binaries
-        
-      - name: Wait for artifacts to be available
-        run: sleep 60
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: artifacts
 
-      - name: Download built binaries
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
-        run: |
-          for os in ubuntu-latest macos-latest windows-latest; do
-            echo "Downloading binaries for $os"
-            gh run download --repo ${{ github.repository }} --name "binaries-$os"
-            gh run download --name binaries-$os --repo kuvaus/llama-chat --dir build/binaries/
-          done
-          ls -R build/binaries
+    - name: Upload artifacts to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/chat-ubuntu-latest
+        asset_name: chat-ubuntu-latest
+        asset_content_type: application/octet-stream
 
-      - name: List contents of build/binaries
-        run: ls -R build/binaries
-        
-      - name: Wait for artifacts to be available
-        run: sleep 60
-        
-      - name: Upload the artifacts
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
-        with:
-          tag_name: ${{ github.ref }}
-          name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-          files: |
-            ${{github.workspace}}/build/binaries/*
+    - name: Upload artifacts to release (macOS)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/chat-macos-latest
+        asset_name: chat-macos-latest
+        asset_content_type: application/octet-stream
 
+    - name: Upload artifacts to release (Windows)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/chat-windows-latest.exe
+        asset_name: chat-windows-latest.exe
+        asset_content_type: application/octet-stream
