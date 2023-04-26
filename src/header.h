@@ -10,6 +10,7 @@
 #include <unistd.h>
 #elif defined (_WIN32)
 #define NOMINMAX
+#define _CRT_SECURE_NO_WARNINGS
 #include <io.h>
 #include <windows.h>
 #endif
