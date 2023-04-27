@@ -25,6 +25,7 @@ void display_frames() {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
     std::cout << "\r" << " " << std::flush;
+    std::cout << "\r" << std::flush;
 }
 
 void display_loading() {
@@ -55,32 +56,20 @@ void display_loading() {
 //////////////////////////////////////////////////////////////////////////
 ////////////                 LLAMA FUNCTIONS                  ////////////
 //////////////////////////////////////////////////////////////////////////
-std::string hashstring = "";
 
-std::function<bool(const std::string&)> print_response = [](const std::string& generated_text) {
-    static std::stringstream buffer;
-    std::string result;
+void update_struct(LLModel::PromptContext  &prompt_context, GPTJParams &params){
+    // TODO: handle this better
+    prompt_context.n_predict = params.n_predict;
+    prompt_context.top_k = params.top_k;
+    prompt_context.top_p = params.top_p;
+    prompt_context.temp = params.temp;
+    prompt_context.n_batch = params.n_batch;
 
-    if (!generated_text.empty()) {
-        stop_display = true;
-
-        // handle ### token separately
-        if (generated_text == "#" || generated_text == "##") {
-            hashstring += generated_text;
-        } else if (generated_text == "###" || hashstring == "###") {
-            hashstring = "";
-            return false;
-        }
-
-        buffer << generated_text;
-        std::cout << generated_text << std::flush;
+    prompt_context.repeat_penalty = 1.10f;  
+    prompt_context.repeat_last_n = 64;  
+    prompt_context.contextErase = 0.75f; 
     }
-
-    result = buffer.str(); // Get the buffer in a string
-    return true; // Return true to continue generating text, or false to stop.
-};
-
-
+    
 void printPromptContext(LLModel::PromptContext& context) {
     // Print n_past
     std::cout << "n_past: " << context.n_past << std::endl;
@@ -217,7 +206,57 @@ int main(int argc, char* argv[]) {
     std::string default_footer = "\n### Response: ";
   
   
+  
+    //////////////////////////////////////////////////////////////////////////
+    ////////////            PROMPT LAMBDA FUNCTIONS               ////////////
+    //////////////////////////////////////////////////////////////////////////
+
+
+
+	auto lambda_prompt = [](int32_t token_id) {
+	        // You can handle prompt here if needed
+	        //std::cout << token_id << std::flush;
+	        //std::cout << promptchars << std::flush;
+	        return true;
+	    };
+	    
+	std::string hashstring ="";
+	auto lambda_response = [&hashstring, &answer](int32_t token_id, std::string response) {
+	   		 
+	
+	        if (!response.empty()) {
+	        // stop the animation, printing response
+	        stop_display = true;
+	
+	        // handle ### token separately
+	        if (response == "#" || response == "##") {
+	            hashstring += response;
+	        } else if (response == "###" || hashstring == "###") {
+	            hashstring = "";
+	            return false;
+	        }
+				std::cout << response << std::flush;
+	            answer = answer + response;
+	        }
+	            
+	    return true;
+	};
+	
+	auto lambda_recalculate = [](bool is_recalculating) {
+	        // You can handle recalculation requests here if needed
+	    return true;
+	};
+
+
+    //////////////////////////////////////////////////////////////////////////
+    ////////////            PROMPT LAMBDA FUNCTIONS               ////////////
+    //////////////////////////////////////////////////////////////////////////
+
+  	//create PromptContext and update fields from params struct.
     LLModel::PromptContext  prompt_context;
+    update_struct(prompt_context, params);
+    
+    
     llama_model.setThreadCount(params.n_threads);
 
     if (interactive) {
@@ -225,34 +264,35 @@ int main(int argc, char* argv[]) {
         if (prompt != "") {
             if (use_animation){ future = std::async(std::launch::async, display_frames); }
             llama_model.prompt((default_prefix + default_header + prompt + " " + input + default_footer).c_str(),
-            print_response, prompt_context, params.n_predict, params.top_k, params.top_p, params.temp, params.n_batch);
+            lambda_prompt, lambda_response, lambda_recalculate, prompt_context);
             if (use_animation){ stop_display = true; future.wait(); stop_display = false; }
         } else {
             if (use_animation){ future = std::async(std::launch::async, display_frames); }
             llama_model.prompt((default_prefix + default_header + input + default_footer).c_str(),
-            print_response, prompt_context, params.n_predict, params.top_k, params.top_p, params.temp, params.n_batch);
+            lambda_prompt, lambda_response, lambda_recalculate, prompt_context);
             if (use_animation){ stop_display = true; future.wait(); stop_display = false; }
 
         }
-        answer = response.c_str();
+        //answer = response.c_str();
 
         while (continuous) {
             std::string memory_string = default_prefix;
             if (memory > 1) {
                 memory_string = default_prefix + default_header + input.substr(0, memory) + default_footer + answer.substr(0, memory);
             }
+            answer = ""; //New prompt. We stored previous answer in memory so clear it.
             input = get_input(con_st, llama_model, input);
             if (use_animation){ future = std::async(std::launch::async, display_frames); }
             llama_model.prompt((memory_string + default_header + input + default_footer).c_str(), 
-            print_response, prompt_context, params.n_predict, params.top_k, params.top_p, params.temp, params.n_batch);
+            lambda_prompt, lambda_response, lambda_recalculate, prompt_context);
             if (use_animation){ stop_display = true; future.wait(); stop_display = false; }
 
-            answer = response.c_str();
+            //answer = response.c_str();
         }
     } else {
         if (use_animation){ future = std::async(std::launch::async, display_frames); }
         llama_model.prompt((default_prefix + default_header + prompt + default_footer).c_str(), 
-        print_response, prompt_context, params.n_predict, params.top_k, params.top_p, params.temp, params.n_batch);
+        lambda_prompt, lambda_response, lambda_recalculate, prompt_context);
         if (use_animation){ stop_display = true; future.wait(); stop_display = false; }
 
     }

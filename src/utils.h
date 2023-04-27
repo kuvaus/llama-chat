@@ -5,7 +5,6 @@
 
 #include "header.h" 
 
-
 void set_console_color(ConsoleState &con_st, ConsoleColor color) {
     if (con_st.use_color && con_st.color != color) {
         //Windows handles colors differently.
