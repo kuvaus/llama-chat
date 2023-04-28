@@ -36,9 +36,9 @@ jobs:
     - name: Configure CMake
       run: |
         if ("${{ matrix.os }}" -eq "windows-latest") {
-          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLLAMA_AVX2=${{ matrix.instructions == 'avx2' && 'ON' || 'OFF' }} -DLLAMA_FMA=${{ matrix.instructions == 'avx2' && 'ON' || 'OFF' }} -G "MinGW Makefiles"
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DAVX2=${{ matrix.instructions == 'avx2' && 'ON' || 'OFF' }} -G "MinGW Makefiles"
         } else {
-          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DLLAMA_AVX2=${{ matrix.instructions == 'avx2' && 'ON' || 'OFF' }} -DLLAMA_FMA=${{ matrix.instructions == 'avx2' && 'ON' || 'OFF' }}
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DAVX2=${{ matrix.instructions == 'avx2' && 'ON' || 'OFF' }}
         }
       shell: pwsh
 

@@ -20,12 +20,14 @@ endif()
 
 
 # options
+option(AVX2                         "enable AVX"                                            ON)
+
 option(LLAMA_AVX                    "llama: enable AVX"                                     ON)
-option(LLAMA_AVX2                   "llama: enable AVX2"                                    OFF)
+option(LLAMA_AVX2                   "llama: enable AVX2"                                    ${AVX2})
 option(LLAMA_AVX512                 "llama: enable AVX512"                                  OFF)
 option(LLAMA_AVX512_VBMI            "llama: enable AVX512-VBMI"                             OFF)
 option(LLAMA_AVX512_VNNI            "llama: enable AVX512-VNNI"                             OFF)
-option(LLAMA_FMA                    "llama: enable FMA"                                     OFF)
+option(LLAMA_FMA                    "llama: enable FMA"                                     ${AVX2})
 
 
 # sanitizers
