@@ -8,14 +8,9 @@
 
 #include <cstdio>
 
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+//Switched to MinGW compilation.
+//No need to include <windows.h>
 #include <unistd.h>
-#elif defined (_WIN32)
-#include <io.h>
-#define NOMINMAX
-#include <windows.h>
-#endif
-
 #include <cassert>
 #include <cmath>
 #include <string>

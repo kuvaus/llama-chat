@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     std::cout << "llama-chat";
     set_console_color(con_st, DEFAULT);
     set_console_color(con_st, PROMPT);
-    std::cout << " (v. " << version << ")";
+    std::cout << " (v. " << VERSION << ")";
     set_console_color(con_st, DEFAULT);
     std::cout << "" << std::endl;
     
@@ -175,26 +175,20 @@ int main(int argc, char* argv[]) {
     auto future = std::async(std::launch::async, display_loading);
 
     //handle stderr for now
+    int stderr_copy = dup(fileno(stderr));
     #ifdef _WIN32
-	    int nullfd = _open("NUL", _O_WRONLY);
-	    _dup2(nullfd, _fileno(stderr));
-	    _close(nullfd);
+        std::freopen("NUL", "w", stderr);
     #else
-        int stderr_copy = dup(fileno(stderr));
         std::freopen("/dev/null", "w", stderr);
-     #endif
+    #endif
 
     std::cout << "\r" << "llama-chat: loading " << params.model.c_str()  << std::endl;
     //auto check_llama = llama_model.loadModel( params.model.c_str() );
     auto check_llama = llmodel_loadModel(llama_model, params.model.c_str());
 
     //bring back stderr for now
-    #ifdef _WIN32
-    	// currently not handed
-    #else
-        dup2(stderr_copy, fileno(stderr));
-        close(stderr_copy);
-    #endif
+    dup2(stderr_copy, fileno(stderr));
+    close(stderr_copy);
 
     if (check_llama == false) {
         stop_display = true;
