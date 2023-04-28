@@ -12,26 +12,27 @@ if(APPLE)
   endif()
 endif()
 
-set(APP_VERSION_MAJOR 2)
-set(APP_VERSION_MINOR 2)
-set(APP_VERSION_PATCH 2)
-set(APP_VERSION "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}")
+#set(APP_VERSION_MAJOR 2)
+#set(APP_VERSION_MINOR 2)
+#set(APP_VERSION_PATCH 2)
+#set(APP_VERSION "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}")
 
 # Generate a header file with the version number
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/../config.h"
-)
+#configure_file(
+#  "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/config.h.in"
+#  "${CMAKE_CURRENT_BINARY_DIR}/../config.h"
+#)
 
 # Include the binary directory for the generated header file
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+#include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-project(llmodel VERSION ${APP_VERSION} LANGUAGES CXX C)
+#project(llmodel VERSION ${APP_VERSION} LANGUAGES CXX C)
+project(llmodel   LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(LLAMA_BUILD_EXAMPLES ON CACHE BOOL "llama: build examples" FORCE)
-set(BUILD_SHARED_LIBS ON FORCE)
+#set(LLAMA_BUILD_EXAMPLES ON CACHE BOOL "llama: build examples" FORCE)
+#set(BUILD_SHARED_LIBS ON FORCE)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 if (GPT4ALL_AVX_ONLY)
