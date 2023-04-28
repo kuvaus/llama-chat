@@ -1,5 +1,5 @@
 #include "gptj.h"
-#include "../llama.cpp/ggml.h"
+#include "llama.cpp/ggml.h"
 
 #include "utils.h"
 

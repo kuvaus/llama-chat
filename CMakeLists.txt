@@ -77,6 +77,6 @@ configure_file(
 # Include the binary directory for the generated header file
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-add_subdirectory(llama.cpp)
+add_subdirectory(llmodel/llama.cpp)
 add_subdirectory(llmodel)
 add_subdirectory(src)

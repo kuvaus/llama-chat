@@ -1,8 +1,8 @@
 #include "llamamodel.h"
 
-#include "../llama.cpp/examples/common.h"
-#include "../llama.cpp/llama.h"
-#include "../llama.cpp/ggml.h"
+#include "llama.cpp/examples/common.h"
+#include "llama.cpp/llama.h"
+#include "llama.cpp/ggml.h"
 
 #include <cassert>
 #include <cmath>
