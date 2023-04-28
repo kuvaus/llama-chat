@@ -1,10 +1,10 @@
 #include "./header.h"
 
-#include "../llm/llmodel.h"
-#include "../llm/llamamodel.h"
+#include "../llmodel/llmodel.h"
+#include "../llmodel/llmodel_c.h"
+#include "../llmodel/llamamodel.h" 
 #include "./utils.h"
 #include "./parse_json.h"
-
 
 //////////////////////////////////////////////////////////////////////////
 ////////////                    ANIMATION                     ////////////
@@ -57,7 +57,7 @@ void display_loading() {
 ////////////                 LLAMA FUNCTIONS                  ////////////
 //////////////////////////////////////////////////////////////////////////
 
-void update_struct(LLModel::PromptContext  &prompt_context, GPTJParams &params){
+void update_struct(llmodel_prompt_context  &prompt_context, GPTJParams &params){
     // TODO: handle this better
     prompt_context.n_predict = params.n_predict;
     prompt_context.top_k = params.top_k;
@@ -67,20 +67,29 @@ void update_struct(LLModel::PromptContext  &prompt_context, GPTJParams &params){
 
     prompt_context.repeat_penalty = 1.10f;  
     prompt_context.repeat_last_n = 64;  
-    prompt_context.contextErase = 0.75f; 
+    prompt_context.context_erase = 0.75f; 
     }
-    
-void printPromptContext(LLModel::PromptContext& context) {
-    // Print n_past
-    std::cout << "n_past: " << context.n_past << std::endl;
 
-    // Print logits
-    std::cout << "logits: ";
-    for (const auto& logit : context.logits) {
-        std::cout << logit << " ";
-    }
-    std::cout << std::endl;
-}
+        // Set up the prompt context
+llmodel_prompt_context prompt_context = {
+        .logits = NULL,
+        .logits_size = 0,
+        .tokens = NULL,
+        .tokens_size = 0,
+        .n_past = 0,
+        .n_ctx = 1024,
+        .n_predict = 50,
+        .top_k = 10,
+        .top_p = 0.9,
+        .temp = 1.0,
+        .n_batch = 1,
+        .repeat_penalty = 1.2,
+        .repeat_last_n = 10,
+        .context_erase = 0.5
+    };
+
+std::string hashstring ="";
+std::string answer ="";
 
 //////////////////////////////////////////////////////////////////////////
 ////////////                 LLAMA FUNCTIONS                  ////////////
@@ -96,7 +105,7 @@ void printPromptContext(LLModel::PromptContext& context) {
 
 
 
-std::string get_input(ConsoleState& con_st, LLamaModel llama_model, std::string& input) {
+std::string get_input(ConsoleState& con_st, llmodel_model llama_model, std::string& input) {
     set_console_color(con_st, USER_INPUT);
 
     std::cout << "\n> ";
@@ -105,7 +114,7 @@ std::string get_input(ConsoleState& con_st, LLamaModel llama_model, std::string&
 
     if (input == "exit" || input == "quit") {
         //free_model(llama_model);
-        llama_model.~LLamaModel();
+        llmodel_llama_destroy(llama_model);
         exit(0);
     }
 
@@ -140,7 +149,7 @@ int main(int argc, char* argv[]) {
     GPTJParams params;
     std::string prompt = "";
     std::string input = "";
-    std::string answer = "";
+    //std::string answer = "";
    
 
     set_console_color(con_st, PROMPT);
@@ -159,7 +168,8 @@ int main(int argc, char* argv[]) {
     bool use_animation = true;
 
 
-    LLamaModel llama_model;
+    //LLamaModel llama_model;
+    llmodel_model llama_model = llmodel_llama_create();
 
     auto future = std::async(std::launch::async, display_loading);
 
@@ -174,7 +184,8 @@ int main(int argc, char* argv[]) {
      #endif
 
     std::cout << "\r" << "llama-chat: loading " << params.model.c_str()  << std::endl;
-    auto check_llama = llama_model.loadModel( params.model.c_str() );
+    //auto check_llama = llama_model.loadModel( params.model.c_str() );
+    auto check_llama = llmodel_loadModel(llama_model, params.model.c_str());
 
     //bring back stderr for now
     #ifdef _WIN32
@@ -215,17 +226,18 @@ int main(int argc, char* argv[]) {
     //////////////////////////////////////////////////////////////////////////
 
 
-
-	auto lambda_prompt = [](int32_t token_id) {
+    auto lambda_prompt = [](int32_t token_id, const char *promptchars)  {
+	//auto lambda_prompt = [](int32_t token_id) {
 	        // You can handle prompt here if needed
 	        //std::cout << token_id << std::flush;
 	        //std::cout << promptchars << std::flush;
 	        return true;
 	    };
-	    
-	std::string hashstring ="";
-	auto lambda_response = [&hashstring, &answer](int32_t token_id, std::string response) {
-	   		 
+
+
+    auto lambda_response = [](int32_t token_id, const char *responsechars) {
+	//auto lambda_response = [&hashstring, &answer](int32_t token_id, std::string response) {
+	   		std::string response = responsechars;
 	
 	        if (!response.empty()) {
 	        // stop the animation, printing response
@@ -247,7 +259,7 @@ int main(int argc, char* argv[]) {
 	
 	auto lambda_recalculate = [](bool is_recalculating) {
 	        // You can handle recalculation requests here if needed
-	    return true;
+	    return is_recalculating;
 	};
 
 
@@ -256,23 +268,26 @@ int main(int argc, char* argv[]) {
     //////////////////////////////////////////////////////////////////////////
 
   	//create PromptContext and update fields from params struct.
-    LLModel::PromptContext  prompt_context;
+    //LLModel::PromptContext  prompt_context;
+
     update_struct(prompt_context, params);
     
     
-    llama_model.setThreadCount(params.n_threads);
+    //llama_model.setThreadCount(params.n_threads);
+    llmodel_setThreadCount(llama_model, params.n_threads);
+
 
     if (interactive) {
         input = get_input(con_st, llama_model, input);
         if (prompt != "") {
             if (use_animation){ future = std::async(std::launch::async, display_frames); }
-            llama_model.prompt((default_prefix + default_header + prompt + " " + input + default_footer).c_str(),
-            lambda_prompt, lambda_response, lambda_recalculate, prompt_context);
+            llmodel_prompt(llama_model, (default_prefix + default_header + prompt + " " + input + default_footer).c_str(),
+            lambda_prompt, lambda_response, lambda_recalculate, &prompt_context);
             if (use_animation){ stop_display = true; future.wait(); stop_display = false; }
         } else {
             if (use_animation){ future = std::async(std::launch::async, display_frames); }
-            llama_model.prompt((default_prefix + default_header + input + default_footer).c_str(),
-            lambda_prompt, lambda_response, lambda_recalculate, prompt_context);
+            llmodel_prompt(llama_model, (default_prefix + default_header + input + default_footer).c_str(),
+            lambda_prompt, lambda_response, lambda_recalculate, &prompt_context);
             if (use_animation){ stop_display = true; future.wait(); stop_display = false; }
 
         }
@@ -286,16 +301,16 @@ int main(int argc, char* argv[]) {
             answer = ""; //New prompt. We stored previous answer in memory so clear it.
             input = get_input(con_st, llama_model, input);
             if (use_animation){ future = std::async(std::launch::async, display_frames); }
-            llama_model.prompt((memory_string + default_header + input + default_footer).c_str(), 
-            lambda_prompt, lambda_response, lambda_recalculate, prompt_context);
+            llmodel_prompt(llama_model, (memory_string + default_header + input + default_footer).c_str(), 
+            lambda_prompt, lambda_response, lambda_recalculate, &prompt_context);
             if (use_animation){ stop_display = true; future.wait(); stop_display = false; }
 
             //answer = response.c_str();
         }
     } else {
         if (use_animation){ future = std::async(std::launch::async, display_frames); }
-        llama_model.prompt((default_prefix + default_header + prompt + default_footer).c_str(), 
-        lambda_prompt, lambda_response, lambda_recalculate, prompt_context);
+        llmodel_prompt(llama_model, (default_prefix + default_header + prompt + default_footer).c_str(), 
+        lambda_prompt, lambda_response, lambda_recalculate, &prompt_context);
         if (use_animation){ stop_display = true; future.wait(); stop_display = false; }
 
     }
@@ -304,8 +319,10 @@ int main(int argc, char* argv[]) {
 
 
     set_console_color(con_st, DEFAULT);
-    printPromptContext(prompt_context);
-    llama_model.~LLamaModel();
+    llmodel_llama_destroy(llama_model);
+
+    //printPromptContext(prompt_context);
+    //llama_model.~LLamaModel();
 
 
     return 0;

@@ -5,7 +5,7 @@ if(APPLE)
   set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 endif()
 
-project(llama-chat VERSION 0.1.1)
+project(llama-chat VERSION 0.1.2)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "on")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -20,7 +20,7 @@ endif()
 
 
 # options
-option(AVX2                         "enable AVX"                                            ON)
+option(AVX2                         "enable AVX"                                            OFF)
 
 option(LLAMA_AVX                    "llama: enable AVX"                                     ON)
 option(LLAMA_AVX2                   "llama: enable AVX2"                                    ${AVX2})
@@ -78,4 +78,5 @@ configure_file(
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_subdirectory(llama.cpp)
+add_subdirectory(llmodel)
 add_subdirectory(src)

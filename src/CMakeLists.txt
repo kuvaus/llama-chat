@@ -1,5 +1,5 @@
 
-add_executable(chat chat.cpp header.h utils.h parse_json.h ../llm/llamamodel.h ../llm/llamamodel.cpp ../llama.cpp/examples/common.cpp ../llm/llmodel.h  )
-target_link_libraries(chat PRIVATE  llama)
+add_executable(chat chat.cpp header.h utils.h parse_json.h ../llmodel/llamamodel.h ../llmodel/llamamodel.cpp    ../llmodel/llmodel.h   ../llmodel/llmodel_c.h  )
+target_link_libraries(chat PRIVATE  llmodel llama)
 
 
