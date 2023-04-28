@@ -38,6 +38,8 @@ cd build
 cmake ..
 cmake --build . --parallel
 ```
+> **Note**
+> If you have an old processor, you can turn AVX2 instructions off in the build step with `-DAVX2=OFF` flag 
 
 ## Usage
 
