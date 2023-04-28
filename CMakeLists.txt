@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.2)
 
 if(APPLE)
   # Build a Universal binary on macOS
