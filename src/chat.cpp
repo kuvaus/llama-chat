@@ -145,6 +145,7 @@ int main(int argc, char* argv[]) {
 
     std::string response;
     response.reserve(10000);
+    answer.reserve(10000);
     int memory = 200;
     GPTJParams params;
     std::string prompt = "";
@@ -242,7 +243,7 @@ int main(int argc, char* argv[]) {
 	        if (!response.empty()) {
 	        // stop the animation, printing response
 	        stop_display = true;
-	
+
 	        // handle ### token separately
 	        if (response == "#" || response == "##") {
 	            hashstring += response;
