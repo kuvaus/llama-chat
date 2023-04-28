@@ -5,7 +5,7 @@ if(APPLE)
   set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 endif()
 
-project(llama-chat VERSION 0.1.0)
+project(llama-chat VERSION 0.1.1)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "on")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -65,6 +65,15 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
 endif ()
+
+# Generate a header file with the version number
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/config.h"
+)
+
+# Include the binary directory for the generated header file
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_subdirectory(llama.cpp)
 add_subdirectory(src)

@@ -35,6 +35,7 @@
 #include <chrono>
 #include <atomic>
 #include <fcntl.h>
+#include "config.h"
 
 
 struct GPTJParams {

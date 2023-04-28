@@ -147,6 +147,9 @@ int main(int argc, char* argv[]) {
     set_console_color(con_st, BOLD);
     std::cout << "llama-chat";
     set_console_color(con_st, DEFAULT);
+    set_console_color(con_st, PROMPT);
+    std::cout << " (v. " << version << ")";
+    set_console_color(con_st, DEFAULT);
     std::cout << "" << std::endl;
     
     parse_params(argc, argv, params, prompt, interactive, continuous, memory);
