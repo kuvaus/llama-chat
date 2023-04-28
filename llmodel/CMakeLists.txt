@@ -38,12 +38,12 @@ if (GPT4ALL_AVX_ONLY)
     set(LLAMA_AVX2 OFF CACHE BOOL "llama: enable AVX2" FORCE)
 endif()
 
-add_subdirectory(llama.cpp)
+#add_subdirectory(../llama.cpp)
 
 add_library(llmodel
     gptj.h gptj.cpp
     llamamodel.h llamamodel.cpp
-    llama.cpp/examples/common.cpp
+    ../llama.cpp/examples/common.cpp
     llmodel.h llmodel_c.h llmodel_c.cpp
     utils.h utils.cpp
 )

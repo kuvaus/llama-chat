@@ -20,7 +20,7 @@ endif()
 
 
 # options
-option(AVX2                         "enable AVX"                                            OFF)
+option(AVX2                         "enable AVX"                                            ON)
 
 option(LLAMA_AVX                    "llama: enable AVX"                                     ON)
 option(LLAMA_AVX2                   "llama: enable AVX2"                                    ${AVX2})
